@@ -36,26 +36,71 @@ typedef uint32_t PDE;
 #define PTX(va)     (((uint32_t)(va) >> PTXSHFT) & 0x3ff)
 #define OFF(va)     ((uint32_t)(va) & 0xfff)
 
+#define MFC0(dst, src, sel) \
+asm volatile("mfc0 %0, $"_STR(src)", %1; nop\n\t":"=r"(dst):"i"(sel))
+
+#define MTC0(dst, src, sel) \
+asm volatile("mtc0 %0, $"_STR(dst)", %1; nop\n\t"::"g"(src),"i"(sel))
+
 // Address in page table or page directory entry
 #define PTE_ADDR(pte)   ((uint32_t)(pte) & ~0xfff)
-
-#define SR_IE   0x00000001//interrupt enable
 
 #define STRINGIFY(s) #s
 #define TOSTRING(s) STRINGIFY(s)
 
 
-void _putc(char ch);/* {
-  outb(SERIAL_PORT, ch);
-}*/
+void _putc(char ch);
 
-void _halt(int code);/* {
-  __asm__ volatile("move $v0, %0; .word 0xf0000000" : :"r"(code));
+void _halt(int code);
 
-  // should not reach here
-  while (1);
-}*/
+//cp0 registers
+#define CP0_INDEX        0
+#define CP0_RANDOM       1
+#define CP0_ENTRY_LO0    2
+#define CP0_ENTRY_LO1    3
+#define CP0_CONTEXT      4  // maintained by kernel
+#define CP0_PAGEMASK     5
+#define CP0_WIRED        6
+#define CP0_RESERVED     7  // for extra debug and segment
+#define CP0_BADVADDR     8
+#define CP0_COUNT        9
+#define CP0_ENTRY_HI     10
+#define CP0_COMPARE      11
+#define CP0_STATUS       12
+#define CP0_CAUSE        13
+#define CP0_EPC          14
+#define CP0_PRID         15 // sel = 0
+#define CP0_EBASE        15 // sel = 1
+#define CP0_CONFIG       16
 
+typedef struct {
+	uint32_t IE   : 1;
+	uint32_t EXL  : 1;
+	uint32_t ERL  : 1;
+	uint32_t R0   : 1;
+
+	uint32_t UM   : 1;
+	uint32_t UX   : 1;
+	uint32_t SX   : 1;
+	uint32_t KX   : 1;
+
+	uint32_t IM   : 8;
+
+	uint32_t Impl : 2;
+	uint32_t _0   : 1;
+	uint32_t NMI  : 1;
+	uint32_t SR   : 1;
+	uint32_t TS   : 1;
+
+	uint32_t BEV  : 1;
+	uint32_t PX   : 1;
+
+	uint32_t MX   : 1;
+	uint32_t RE   : 1;
+	uint32_t FR   : 1;
+	uint32_t RP   : 1;
+	uint32_t CU   : 4;
+} cp0_status_t;
 static inline void puts(const char *s) {
   for (; *s; s++)
     _putc(*s);
@@ -67,22 +112,24 @@ static inline void puts(const char *s) {
     _halt(1); \
   } while(0)
 
-static inline uint32_t get_sr() {//get status register
-  volatile uint32_t sr;
-  asm volatile ("mfc0 %0, $12, 0" : "=r"(sr));
+static inline cp0_status_t get_sr() {//get status register
+  volatile cp0_status_t sr;
+  MFC0(sr, CP0_STATUS, 0);
   return sr;
 }
 
 static inline void di() {//disable interrupt
-  volatile uint32_t sr;
-  sr = get_sr() & 0xfffffffe;//set ie = 0
-  asm volatile ("mtc0 %0, $12, 0" : : "r"(sr));//write status register
+  volatile cp0_status_t sr;
+  sr = get_sr();
+  sr.IE = 0;//set ie = 0
+  MTC0(CP0_STATUS, sr, 0);//write status register
 }
 
 static inline void ei() {//enable interrupt
-  volatile uint32_t sr;
-  sr = get_sr() | SR_IE;//set ie = 1
-  asm volatile ("mtc0 %0, $12, 0" : : "r"(sr));//write status register
+  volatile cp0_status_t sr;
+  sr = get_sr();
+  sr.IE = 1;//set ie = 1
+  MTC0(CP0_STATUS, sr, 0);//write status register
 }
 
 #endif
