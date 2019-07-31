@@ -72,6 +72,10 @@ size_t _io_write(uint32_t dev, uintptr_t reg, void *buf, size_t size);
 
 int _cte_init(_Context *(*handler)(_Event ev, _Context *ctx));
 void _yield();
+void enable_interrupt();
+void trace_count();
+void trace_compare();
+void trace_status();
 int _intr_read();
 void _intr_write(int enable);
 _Context *_kcontext(_Area kstack, void (*entry)(void *), void *arg);

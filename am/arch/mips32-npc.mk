@@ -2,13 +2,13 @@ include $(AM_HOME)/am/arch/isa/mips32.mk
 
 AM_SRCS := $(ISA)/npc/trm.c \
 		   $(ISA)/nemu/cte.c \
-		   $(ISA)/nemu/trap.S \
+		   $(ISA)/npc/trap.S \
            $(ISA)/nemu/vme.c \
            nemu-devices/ioe.c \
            nemu-devices/nemu-timer.c \
            $(ISA)/npc/devices/keyboard.c \
            nemu-devices/nemu-video.c \
-           $(ISA)/nemu/boot/start.S
+           $(ISA)/npc/boot/start.S
 
 LD_SCRIPT := $(AM_HOME)/am/src/$(ISA)/npc/boot/loader.ld
 

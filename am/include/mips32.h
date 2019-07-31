@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#define EBASE ((void *)0xbfc00000)
+
 #define MMIO_OFFSET(addr) ((uintptr_t)0xa0000000 + addr)
 
 static inline uint8_t  inb(uintptr_t addr) { return *(volatile uint8_t  *)MMIO_OFFSET(addr); }
@@ -36,6 +38,8 @@ typedef uint32_t PDE;
 #define PTX(va)     (((uint32_t)(va) >> PTXSHFT) & 0x3ff)
 #define OFF(va)     ((uint32_t)(va) & 0xfff)
 
+#define _STR(x) #x
+
 #define MFC0(dst, src, sel) \
 asm volatile("mfc0 %0, $"_STR(src)", %1; nop\n\t":"=r"(dst):"i"(sel))
 
@@ -62,6 +66,7 @@ void _halt(int code);
 #define CP0_PAGEMASK     5
 #define CP0_WIRED        6
 #define CP0_RESERVED     7  // for extra debug and segment
+#define CP0_BASE         7  // for extra debug and segment
 #define CP0_BADVADDR     8
 #define CP0_COUNT        9
 #define CP0_ENTRY_HI     10
@@ -72,6 +77,33 @@ void _halt(int code);
 #define CP0_PRID         15 // sel = 0
 #define CP0_EBASE        15 // sel = 1
 #define CP0_CONFIG       16
+
+#define CP0_PRID_SEL     0 // sel = 0
+#define CP0_EBASE_SEL    1 // sel = 1
+
+#define CP0_TAG_LO       28
+#define CP0_TAG_HI       29
+
+#define IP_TIMER_MASK 0x80
+
+#define EXC_INTR    0
+#define EXC_TLBM    1
+#define EXC_TLBL    2
+#define EXC_TLBS    3
+#define EXC_AdEL    4
+#define EXC_AdES    5
+#define EXC_IBE     6
+#define EXC_DBE     7
+#define EXC_SYSCALL 8
+#define EXC_BP      9
+#define EXC_RI      10
+#define EXC_CPU     11
+#define EXC_OV      12
+#define EXC_TRAP    13
+
+/* ====================schedule================== */
+#define HZ 50000000
+#define INTERVAL 300000
 
 typedef struct {
 	uint32_t IE   : 1;
@@ -101,6 +133,22 @@ typedef struct {
 	uint32_t RP   : 1;
 	uint32_t CU   : 4;
 } cp0_status_t;
+typedef struct {
+	uint32_t _5 : 2;
+	uint32_t ExcCode : 5;
+	uint32_t _4 : 1;
+	uint32_t IP : 8;
+
+	uint32_t _3 : 6;
+	uint32_t WP : 1;
+	uint32_t IV : 1;
+
+	uint32_t _2 : 4;
+	uint32_t CE : 2;
+	uint32_t _1 : 1;
+	uint32_t BD : 1;
+} cp0_cause_t;
+
 static inline void puts(const char *s) {
   for (; *s; s++)
     _putc(*s);

@@ -94,6 +94,7 @@ void* memmove(void* dst,const void* src,size_t n){
 }
 
 void* memcpy(void* out, const void* in, size_t n) {
+  //printf("memcpy from 0x%x to 0x%x\n", (int)in, (int)out);
   char *dst = (char *)out;
   char *src = (char *)in;
   const size_t threshold = 32;

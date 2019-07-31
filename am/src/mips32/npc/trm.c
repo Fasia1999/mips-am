@@ -1,5 +1,6 @@
 #include <am.h>
 #include <nemu.h>
+#include <klib.h>
 
 extern char _heap_start;
 extern char _heap_end;
@@ -17,12 +18,15 @@ void _putc(char ch) {
 
 void _halt(int code) {
 #define GPIO_ADDR 0x10000000
+  printf("halt\n");
   outl(GPIO_ADDR, code);
   // should not reach here
   while (1);
 }
 
 void _trm_init() {
-  int ret = main();
-  _halt(ret);
+  //printf("trm_init\n");
+  //int ret = main();
+  //printf("trm_init> main: %d\n", ret);
+  _halt(main());
 }
