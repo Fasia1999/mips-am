@@ -13,7 +13,7 @@ void get_timeofday(void *rtc) {
 
 int read_key() {
   _DEV_INPUT_KBD_t key;
-  //printf("read_key\n");
+  printf("read_key\n");
   _io_read(_DEV_INPUT, _DEVREG_INPUT_KBD, &key, sizeof(_DEV_INPUT_KBD_t));
   int ret = key.keycode;
   if (key.keydown) ret |= 0x8000;

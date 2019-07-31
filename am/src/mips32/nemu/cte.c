@@ -100,12 +100,12 @@ void __am_irq_handle(_Context *regs){
   //printf("*****************irq_handle******************\n");
   cp0_cause_t *cause = (void*)&(regs->cause);
   uint32_t exccode = cause->ExcCode;
-  printf("--reg start addr: %x\n", regs);
-  printf("--at addr: %x\n", &regs->at);
-  printf("--v0 addr: %x\n", &regs->v0);
-  printf("--v1 addr: %x\n", &regs->v1);
-  printf("--a0 addr: %x\n", &regs->a0);
-  printf("--cause addr: %x\n", &regs->cause);
+  //printf("--reg start addr: %x\n", regs);
+  //printf("--at addr: %x\n", &regs->at);
+  //printf("--v0 addr: %x\n", &regs->v0);
+  //printf("--v1 addr: %x\n", &regs->v1);
+  //printf("--a0 addr: %x\n", &regs->a0);
+  //printf("--cause addr: %x\n", &regs->cause);
   //printf("irq_handle> epc: 0x%x\n", regs->epc);
   //printf("irq_handle> cause: 0x%x\n", regs->cause);
   //printf("irq_handle> status: 0x%x\n", regs->status);
@@ -143,7 +143,7 @@ void __am_irq_handle(_Context *regs){
     }
     case EXC_SYSCALL:
       regs->epc += 4;
-	    if(regs->a0 == -1)
+	    if(regs->gpr.a0 == -1)
 		    ev.event = _EVENT_YIELD;
 	    else
 		    ev.event = _EVENT_SYSCALL;
@@ -184,14 +184,14 @@ void __am_irq_handle(_Context *regs){
     "lw $t8, %[t8];" "lw $t9, %[t9];"
     "lw $gp, %[gp];" "lw $fp, %[fp];" "lw $ra, %[ra];" "lw $sp, %[sp];"
     : : 
-    [v0]"m"(ret->v0), [at]"m"(ret->at),
-    [a0]"m"(ret->a0), [a1]"m"(ret->a1), [a2]"m"(ret->a2), [a3]"m"(ret->a3),
-    [t0]"m"(ret->t0), [t1]"m"(ret->t1), [t2]"m"(ret->t2), [t3]"m"(ret->t3),
-    [t4]"m"(ret->t4), [t5]"m"(ret->t5), [t6]"m"(ret->t6), [t7]"m"(ret->t7),
-    [s0]"m"(ret->s0), [s1]"m"(ret->s1), [s2]"m"(ret->s2), [s3]"m"(ret->s3),
-    [s4]"m"(ret->s4), [s5]"m"(ret->s5), [s6]"m"(ret->s6), [s7]"m"(ret->s7),
-    [t8]"m"(ret->t8), [t9]"m"(ret->t9),
-    [gp]"m"(ret->gp), [fp]"m"(ret->fp), [ra]"m"(ret->ra), [sp]"m"(ret->sp)
+    [v0]"m"(ret->gpr.v0), [at]"m"(ret->gpr.at),
+    [a0]"m"(ret->gpr.a0), [a1]"m"(ret->gpr.a1), [a2]"m"(ret->gpr.a2), [a3]"m"(ret->gpr.a3),
+    [t0]"m"(ret->gpr.t0), [t1]"m"(ret->gpr.t1), [t2]"m"(ret->gpr.t2), [t3]"m"(ret->gpr.t3),
+    [t4]"m"(ret->gpr.t4), [t5]"m"(ret->gpr.t5), [t6]"m"(ret->gpr.t6), [t7]"m"(ret->gpr.t7),
+    [s0]"m"(ret->gpr.s0), [s1]"m"(ret->gpr.s1), [s2]"m"(ret->gpr.s2), [s3]"m"(ret->gpr.s3),
+    [s4]"m"(ret->gpr.s4), [s5]"m"(ret->gpr.s5), [s6]"m"(ret->gpr.s6), [s7]"m"(ret->gpr.s7),
+    [t8]"m"(ret->gpr.t8), [t9]"m"(ret->gpr.t9),
+    [gp]"m"(ret->gpr.gp), [fp]"m"(ret->gpr.fp), [ra]"m"(ret->gpr.ra), [sp]"m"(ret->gpr.sp)
     :"v0","at",
      "a0","a1","a2","a3",
      "t0","t1","t2","t3",
@@ -212,7 +212,7 @@ void __am_irq_handle(_Context *regs){
     [epc]"m"(ret->epc),
     [base]"m"(ret->base),
     [hi]"m"(ret->hi), [lo]"m"(ret->lo),
-    [v1]"m"(ret->v1),
+    [v1]"m"(ret->gpr.v1),
 	[epc_no]"i"(CP0_EPC),
 	[base_no]"i"(CP0_BASE)
 	);
@@ -298,8 +298,8 @@ _Context *_kcontext(_Area stack, void (*entry)(void *), void *arg) {
   _Context *c = (_Context*)stack.end - 1;
   //if(arg) printf("kcontext: %x, %s\n", entry, (char*) arg);
   //else printf("kcontext: %x\n", entry);
-  c->a0 = (uintptr_t)arg;
-  c->sp = (uint32_t) stack.end;
+  c->gpr.a0 = (uintptr_t)arg;
+  c->gpr.sp = (uint32_t) stack.end;
   c->epc = (uint32_t)entry;
   return c;
 }
