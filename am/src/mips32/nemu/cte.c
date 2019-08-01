@@ -144,10 +144,16 @@ void __am_irq_handle(_Context *regs){
     case EXC_SYSCALL:
       regs->epc += 4;
 	    if(regs->gpr.a0 == -1)
-		    ev.event = _EVENT_YIELD;
+		  {
+        //printf("event_yield\n");
+        ev.event = _EVENT_YIELD;
+      }
 	    else
-		    ev.event = _EVENT_SYSCALL;
-        break;
+      {
+        //printf("event_syscall\n");
+        ev.event = _EVENT_SYSCALL;
+      }
+      break;
     case EXC_TRAP:
       ev.event = _EVENT_SYSCALL;
       break;
@@ -279,7 +285,7 @@ static inline void set_handler(unsigned offset, void *addr, int size) {
 int _cte_init(_Context* (*handler)(_Event ev, _Context *regs)){
   user_handler = handler; // set asye handler
   //printf("_cte_init> ");
-  trace_status();
+  //trace_status();
   setup_bev();//set exception verctor base address bit
 
   void *entry = get_exception_entry();
