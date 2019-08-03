@@ -98,86 +98,85 @@ static inline void flush_cache(void *begin, void *end) {
 
 void __am_irq_handle(_Context *regs){
   //printf("*****************irq_handle******************\n");
+  //printf("epc: 0x%x\n", regs->epc);
   cp0_cause_t *cause = (void*)&(regs->cause);
   uint32_t exccode = cause->ExcCode;
-  //printf("--reg start addr: %x\n", regs);
-  //printf("--at addr: %x\n", &regs->at);
-  //printf("--v0 addr: %x\n", &regs->v0);
-  //printf("--v1 addr: %x\n", &regs->v1);
-  //printf("--a0 addr: %x\n", &regs->a0);
-  //printf("--cause addr: %x\n", &regs->cause);
-  //printf("irq_handle> epc: 0x%x\n", regs->epc);
-  //printf("irq_handle> cause: 0x%x\n", regs->cause);
-  //printf("irq_handle> status: 0x%x\n", regs->status);
-  /*int epc;
-  MFC0(epc, CP0_EPC, 0);
-  printf("--epc: %x\n", epc);
-  int cause_reg;
-  asm volatile("mfc0 %0, $%[c0_cause]":"=r"(cause_reg) :[c0_cause]"i"(CP0_CAUSE));
-  printf("--cause is 0x%x\n", cause_reg);
-  int status;
-  MFC0(status, CP0_STATUS, 0);
-  printf("--status: %x\n", status);*/
-  //uint32_t ipcode = cause->IP;
-  //uint32_t exccode = (temp & 0x0000007c) >> 2;
-  //uint32_t ipcode = (temp & 0x0000ff00) >> 8;
-  //printf("irq_handle> cause.ExcCode: 0x%x\n", exccode);
-  //printf("irq_handle> cause.ipcode: 0x%x\n", ipcode);
-  
   _Event ev;
   ev.event = _EVENT_NULL;
+  //int count = 0, compare = 0;
   //TODO: exception handling
   // Delayslot should be considered when handle exceptions !!!
+  //printf("update_timer here\n");
   update_timer(INTERVAL); // update when exception happens
+  //MFC0(count, CP0_COUNT, 0);
+  //MFC0(compare, CP0_COMPARE, 0);
+  //printf("count: %d compare: %d\n", count, compare);
+  //printf("here?\n");
   switch(exccode){
-    case EXC_INTR: {
-      //if(ipcode & IP_TIMER_MASK) {
-          ev.event = _EVENT_IRQ_TIMER;
-		  //cause->IP = 0;
-		  //asm volatile("mtc0 %0, $13, 0;nop;nop"::"r"(regs->cause));
-	    //} else {
-		    //printk("invalid ipcode = %x\n", ipcode);
-		    //_halt(-1);
-      //}
+    case EXC_INTR: 
+      //printf("event_irq_timer\n");
+      //printf("count: %d compare: %d\n", count, compare);
+      ev.event = _EVENT_IRQ_TIMER;
       break;
-    }
     case EXC_SYSCALL:
       regs->epc += 4;
 	    if(regs->gpr.a0 == -1)
 		  {
-        //printf("event_yield\n");
+        //printf("syscall: event_yield\n");
         ev.event = _EVENT_YIELD;
       }
 	    else
       {
-        //printf("event_syscall\n");
+        //printf("syscall: event_syscall\n");
         ev.event = _EVENT_SYSCALL;
       }
       break;
     case EXC_TRAP:
+      //printf("trap: event_syscall\n");
       ev.event = _EVENT_SYSCALL;
       break;
 	  case EXC_TLBM:
+      printf("exc_tlbm\n");
+      break;
 	  case EXC_TLBL:
+      printf("exc_tlbl\n");
+      break;
 	  case EXC_TLBS:
+      printf("exc_tlbs\n");
 		  ev.event = _EVENT_PAGEFAULT;
 		  break;
     case EXC_AdEL:
+      printf("exc_adel\n");
+      break;
     case EXC_AdES:
+      printf("exc_ades\n");
+      break;
     case EXC_BP:
+      printf("exc_bp\n");
+      break;
     case EXC_RI:
+      printf("exc_ri\n");
+      break;
     case EXC_OV:
+      printf("exc_ov\n");
+      break;
     default:
 	    printk("unhandled exccode = %x, epc:%08x, badvaddr:%08x\n", exccode, regs->epc, regs->badvaddr);
 	    _halt(-1);
   }
-
+  //printf("here1\n");
   _Context *ret = regs;
+  //printf("what?\n");
   if(user_handler) {
+    //printf("user_handler: 0x%x\n", user_handler);
 	  _Context *next = user_handler(ev, regs);
-	  if(next != NULL) ret = next;
+	  if(next != NULL) 
+      ret = next;
+    //printf("*epc: 0x%x\n", ret->epc);
   }
+  //else printf("no user handler\n");
 
+  //printf("seriously?\n");
   // restore common registers
   asm volatile(
 	".set noat;"
@@ -350,11 +349,7 @@ void enable_interrupt() {
 }
 
 void _yield() {
-  //printf("yield1\n");
   init_timer(INTERVAL);
-  //printf("yield2\n");
-  //enable_interrupt();
-  //printf("yield3\n");
   asm volatile("nop; mthi $0; mtlo $0; li $a0, -1; syscall; nop");
 }
 
@@ -363,18 +358,20 @@ void _yield() {
 }*/
 
 int _intr_read() {//get IF(interrupt enable flag), return 1 if interrupt is enabled(IF == 1)
+  //printf("intr_read\n");
   if (!user_handler) panic("no interrupt handler");
   return get_sr().IE != 0;
 }
 
-void _intr_write(int enable) {//cli: disable interrupt; sti: enable interrupt;
+void _intr_write(int enable) {//di: disable interrupt; ei: enable interrupt;
   if (!user_handler) panic("no interrupt handler");
   if (enable) {
+    //printf("intr_write: enable\n");
+    update_timer(INTERVAL);
     ei();
-    //printf("enable intr\n");
   } else {
+    //printf("intr_write: disable\n");
     di();
-    //printf("disable intr\n");
   }
 }
 
