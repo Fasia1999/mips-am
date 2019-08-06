@@ -15,6 +15,7 @@
 #define strcpy my_strcpy
 #define strncpy my_strncpy
 #define strcat my_strcat
+#define strncat my_strncat
 #define strcmp my_strcmp
 #define strncmp my_strncmp
 #define memset my_memset
@@ -47,6 +48,7 @@ void* memmove(void* dst, const void* src, size_t n);
 int memcmp(const void* s1, const void* s2, size_t n);
 size_t strlen(const char* s);
 char* strcat(char* dst, const char* src);
+char* strncat(char* dst, const char* src,size_t n);
 char* strcpy(char* dst, const char* src);
 char* strncpy(char* dst, const char* src, size_t n);
 int strcmp(const char* s1, const char* s2);
@@ -56,6 +58,9 @@ char *strstr(const char *, const char *);
 const char *strchr(const char *s, int c);
 
 // stdlib.h
+int atoi8(const char* nptr);
+int atoi10(const char* nptr);
+int atoi16(const char* nptr);
 int atoi(const char* nptr);
 int abs(int x);
 unsigned long time();

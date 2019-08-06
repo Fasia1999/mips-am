@@ -31,6 +31,15 @@ char* strcat(char* dst, const char* src){
   while((*dst++=*src++)!='\0');
   return d;
 }
+char* strncat(char* dst, const char* src,size_t n) {
+    size_t dest_len=strlen(dst);
+    size_t i;
+    for(i=0;i<n&&src[i]!='\0';++i){
+        dst[dest_len+i]=src[i];
+    }
+    dst[dest_len+i]='\0';
+    return dst;
+}
 int strcmp(const char* s1, const char* s2){
   while(*s1&&*s1==*s2)s1++,s2++;
   return (int)(*s1-*s2);

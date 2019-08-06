@@ -24,29 +24,29 @@ void update_timer(uint32_t step) {//cp0_compare = cp0_count + step
 
 void trace_count()
 {
-  int count = 0;
-  MFC0(count, CP0_COUNT, 0);
+  //int count = 0;
+ // MFC0(count, CP0_COUNT, 0);
   //printf("trace_count> cp0_count: %d\n", count);
 }
 
 void trace_compare()
 {
-  int compare = 0;
-  MFC0(compare, CP0_COMPARE, 0);
+  //int compare = 0;
+  //MFC0(compare, CP0_COMPARE, 0);
   //printf("trace_compare> cp0_compare: %d\n", compare);
 }
 
 void trace_status()
 {
-  cp0_status_t status;
-  MFC0(status, CP0_STATUS, 0);
+  //cp0_status_t status;
+  //MFC0(status, CP0_STATUS, 0);
   //printf("trace_status> cp0_status: 0x%x\n", status);
 }
 
 void trace_cause()
 {
-  int cause;
-  MFC0(cause, CP0_CAUSE, 0);
+  //int cause;
+  //MFC0(cause, CP0_CAUSE, 0);
   //printf("trace_cause> cp0_cause: 0x%x\n", cause);
 }
 
@@ -103,15 +103,9 @@ void __am_irq_handle(_Context *regs){
   uint32_t exccode = cause->ExcCode;
   _Event ev;
   ev.event = _EVENT_NULL;
-  //int count = 0, compare = 0;
   //TODO: exception handling
   // Delayslot should be considered when handle exceptions !!!
-  //printf("update_timer here\n");
   update_timer(INTERVAL); // update when exception happens
-  //MFC0(count, CP0_COUNT, 0);
-  //MFC0(compare, CP0_COMPARE, 0);
-  //printf("count: %d compare: %d\n", count, compare);
-  //printf("here?\n");
   switch(exccode){
     case EXC_INTR: 
       //printf("event_irq_timer\n");
@@ -164,19 +158,12 @@ void __am_irq_handle(_Context *regs){
 	    printk("unhandled exccode = %x, epc:%08x, badvaddr:%08x\n", exccode, regs->epc, regs->badvaddr);
 	    _halt(-1);
   }
-  //printf("here1\n");
   _Context *ret = regs;
-  //printf("what?\n");
   if(user_handler) {
-    //printf("user_handler: 0x%x\n", user_handler);
 	  _Context *next = user_handler(ev, regs);
 	  if(next != NULL) 
       ret = next;
-    //printf("*epc: 0x%x\n", ret->epc);
   }
-  //else printf("no user handler\n");
-
-  //printf("seriously?\n");
   // restore common registers
   asm volatile(
 	".set noat;"
@@ -336,15 +323,15 @@ void enable_interrupt() {
                        //2~6: Hardware interrupt
                        //7: Hardware/timer/performance counter interrupt
   c0_status.ERL = 0;//0: normal level 1: error level(kernel mode & interrupt disabled & eret --> errorepc(not epc) & ...)
-  trace_count();
+  //trace_count();
   c0_status.IE  = 1;//0: interrupt disable 1: interrupt enable
 
   MTC0(CP0_STATUS, c0_status, 0);
-  trace_count();
+  //trace_count();
   //printf("enable_interrupt> ");
-  trace_status();
+  //trace_status();
   //printf("enable_interrupt> ");
-  trace_cause();
+  //trace_cause();
   //asm volatile("mtc0 %0, $%1" :: "r"(c0_status), "i"(CP0_STATUS));
 }
 
